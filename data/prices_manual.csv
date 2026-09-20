@@ -1,0 +1,2 @@
+ticker,price,as_of,note
+EXAMPLE,0,2026-01-01,Delete this row. Add one row per ticker to skip the price API.
