@@ -61,6 +61,22 @@ def test_annual_flow_returns_empty_when_no_tag_matches():
     assert result.empty
 
 
+def test_annual_flow_merges_years_across_a_tag_switch():
+    """A filer that moves a concept to a different tag partway through its history
+    (NVIDIA moved revenue back to the legacy `Revenues` tag after FY2022) must not
+    lose the years reported only under the other tag."""
+    payload = {"facts": {"us-gaap": {
+        "RevenueFromContractWithCustomerExcludingAssessedTax":
+            {"units": {"USD": [year_row(2021, 100), year_row(2022, 110)]}},
+        "Revenues": {"units": {"USD": [year_row(2022, 999), year_row(2023, 120)]}},
+    }}}
+    result = annual_flow(payload, ["RevenueFromContractWithCustomerExcludingAssessedTax",
+                                   "Revenues"])
+    assert result.loc[2021] == 100
+    assert result.loc[2022] == 110  # preferred tag wins where both report a year
+    assert result.loc[2023] == 120  # gap year filled from the fallback tag
+
+
 def test_annual_instant_skips_rows_with_a_start_date():
     rows = [{"end": "2023-12-31", "fy": 2023, "form": "10-K", "val": 5000, "accn": "a"},
             year_row(2023, 111)]

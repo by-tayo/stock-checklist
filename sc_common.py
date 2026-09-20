@@ -264,8 +264,28 @@ def _entries(facts: dict, tag: str) -> list[dict]:
     return out
 
 
+def _merge_tag_series(per_tag: list[pd.Series]) -> pd.Series:
+    """Union series from several tags, in preference order.
+
+    Filers sometimes switch which tag they use for the same concept partway through
+    their history (NVIDIA moved revenue from RevenueFromContractWithCustomer... back
+    to the older Revenues tag, for example). Taking only the first tag with any data
+    would silently drop the years reported under a later tag, so instead every tag's
+    years go in and, where two tags cover the same year, the earlier (preferred) tag
+    wins.
+    """
+    series = [s for s in per_tag if not s.empty]
+    if not series:
+        return pd.Series(dtype=float)
+    combined = series[0]
+    for s in series[1:]:
+        combined = combined.combine_first(s)
+    return combined.sort_index()
+
+
 def annual_flow(facts: dict, tags: list[str]) -> pd.Series:
     """Full-year values from 10-K filings, keyed by fiscal year."""
+    per_tag = []
     for tag in tags:
         rows = []
         for row in _entries(facts, tag):
@@ -282,12 +302,15 @@ def annual_flow(facts: dict, tags: list[str]) -> pd.Series:
         if rows:
             frame = pd.DataFrame(rows).sort_values(["fy", "end", "accn"])
             # Later filings restate earlier years; keep the most recent statement.
-            return frame.groupby("fy")["val"].last()
-    return pd.Series(dtype=float)
+            per_tag.append(frame.groupby("fy")["val"].last())
+        else:
+            per_tag.append(pd.Series(dtype=float))
+    return _merge_tag_series(per_tag)
 
 
 def annual_instant(facts: dict, tags: list[str]) -> pd.Series:
     """Balance-sheet values at fiscal year end, keyed by fiscal year."""
+    per_tag = []
     for tag in tags:
         rows = []
         for row in _entries(facts, tag):
@@ -302,8 +325,10 @@ def annual_instant(facts: dict, tags: list[str]) -> pd.Series:
                          "end": end, "val": row["val"], "accn": row.get("accn", "")})
         if rows:
             frame = pd.DataFrame(rows).sort_values(["fy", "end", "accn"])
-            return frame.groupby("fy")["val"].last()
-    return pd.Series(dtype=float)
+            per_tag.append(frame.groupby("fy")["val"].last())
+        else:
+            per_tag.append(pd.Series(dtype=float))
+    return _merge_tag_series(per_tag)
 
 
 # ---------------------------------------------------------------- metrics
