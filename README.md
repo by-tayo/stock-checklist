@@ -30,7 +30,7 @@ Run against real SEC filings: `python 01_fetch_company.py NVDA AMD`.
 
 ![NVDA against AMD on operating margin, ROE, growth and P/E](docs/images/nvda_amd_comps.png)
 
-Both charts come straight out of NVIDIA's XBRL filings — the 2020 margin dip and the
+Both charts come straight out of NVIDIA's XBRL filings, the 2020 margin dip and the
 2023–2026 run-up are both real, not decoration. Price is a manual snapshot
 (`data/prices_manual.csv`), dated in the file; everything else is pulled live from
 `data.sec.gov`.
@@ -40,7 +40,7 @@ Both charts come straight out of NVIDIA's XBRL filings — the 2020 margin dip a
 | Section | Measures |
 |---|---|
 | Snapshot | price, market cap, size bucket, growth/income label, revenue and its growth rate |
-| Is it a good business? | gross, operating, net and free-cash-flow margins; return on equity and on invested capital; cash conversion — latest and 5-year average |
+| Is it a good business? | gross, operating, net and free-cash-flow margins; return on equity and on invested capital; cash conversion latest and 5-year average |
 | Can it survive a bad year? | total debt, cash, net debt, debt to equity, free cash flow |
 | What do I pay? | P/E, P/B, EPS, dividend per share, yield, payout ratio, diluted shares |
 | Worth a second look | automated flags: losses, dilution, uncovered dividend, heavy leverage, weak cash conversion, penny-stock territory |
@@ -135,9 +135,9 @@ Full detail, including every tag mapping and seven known limitations:
 ## Data sources
 
 - [SEC EDGAR APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces)
-  — company facts, submissions. No key; a self-identifying `User-Agent` is required
+  company facts, submissions. No key; a self-identifying `User-Agent` is required
   and the rate limit is 10 requests per second.
-- [Alpha Vantage](https://www.alphavantage.co/support/#api-key) — share prices,
+- [Alpha Vantage](https://www.alphavantage.co/support/#api-key) share prices,
   optional, 25 requests/day on the free tier.
 
 Your key and everything downloaded stay local: `.gitignore` excludes `.env`,
